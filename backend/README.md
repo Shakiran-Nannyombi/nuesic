@@ -6,13 +6,31 @@ FastAPI server that orchestrates Claude AI and the YouTube Data API into three e
 
 ```
 backend/
-├── main.py              FastAPI app + route handlers + CORS
-├── claude_service.py    Claude system prompt, JSON schemas, prompt caching
-├── youtube_service.py   YouTube Data API v3 search wrapper
-├── session_logic.py     Frequency band constants
+├── main.py                 # Application entry point (FastAPI app + CORS)
+├── app/
+│   ├── routers/
+│   │   ├── session.py      # Session endpoints (/api/generate-session, /api/adapt-session, /api/end-session)
+│   │   └── health.py       # Health check endpoint (/health)
+│   ├── services/
+│   │   ├── claude_service.py    # Claude system prompt, JSON schemas, prompt caching
+│   │   └── youtube_service.py   # YouTube Data API v3 search wrapper
+│   ├── core/
+│   │   ├── constants.py         # Frequency band constants (FREQUENCY_BANDS, CARRIER_HZ)
+│   │   └── session_logic.py     # Domain helpers (build_youtube_query)
+│   └── schemas/
+│       └── session.py           # Pydantic request models (GenerateSessionRequest, AdaptSessionRequest, EndSessionRequest)
 ├── requirements.txt
-└── .env.example         Template for ANTHROPIC_API_KEY + YOUTUBE_API_KEY
+├── pyproject.toml
+└── .env.example         # Template for ANTHROPIC_API_KEY + YOUTUBE_API_KEY
 ```
+
+### Directory Structure
+
+- **`main.py`**: Application entry point that creates the FastAPI app, configures CORS middleware, and registers all routers
+- **`app/routers/`**: Route handlers organized by resource (session operations, health checks)
+- **`app/services/`**: External API integrations (Claude AI, YouTube Data API)
+- **`app/core/`**: Domain logic, business rules, and constants
+- **`app/schemas/`**: Pydantic models for request/response validation
 
 ## Setup
 
@@ -123,7 +141,7 @@ Generates a focus score and an insight from completed-session stats.
 
 ## Claude integration
 
-`claude_service.py` holds:
+`app/services/claude_service.py` holds:
 
 - The **system prompt** — entrainment science (frequency bands, target Hz), valence-arousal mapping, cognitive break heuristics (block sizes per total duration), music selection rules (genre + tempo per band), and the African student tone guide. Sized to comfortably exceed Sonnet 4.6's 2048-token caching minimum.
 - Three **JSON schemas** — one per task (`generate_session`, `adapt_session`, `end_session`), enforced via `output_config.format` so Claude returns strict JSON and we never have to regex-parse anything.
@@ -138,7 +156,7 @@ Generates a focus score and an insight from completed-session stats.
 
 ## YouTube integration
 
-`youtube_service.py` issues one search query per `/api/generate-session` call against `https://www.googleapis.com/youtube/v3/search`. Uses `videoEmbeddable=true` so the returned video is guaranteed to play in the embedded iframe, and `videoCategoryId=10` (Music) plus `safeSearch=strict`.
+`app/services/youtube_service.py` issues one search query per `/api/generate-session` call against `https://www.googleapis.com/youtube/v3/search`. Uses `videoEmbeddable=true` so the returned video is guaranteed to play in the embedded iframe, and `videoCategoryId=10` (Music) plus `safeSearch=strict`.
 
 Cost: 100 quota units per search · 10,000 free units per day · ≈100 sessions/day on the free tier.
 
