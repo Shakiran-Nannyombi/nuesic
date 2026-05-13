@@ -32,7 +32,10 @@ export default function Onboarding({ onSessionGenerated }) {
     <div className="min-h-full flex flex-col items-center px-6 py-10">
       <div className="w-full max-w-md">
         <header className="mb-8">
-          <h1 className="font-display text-5xl leading-none mb-2">Neusic</h1>
+          <div className="flex items-center gap-4 mb-2">
+            <img src="/logo-nuesic.png" alt="Neusic logo" className="h-24 w-24 object-contain" />
+            <h1 className="font-display text-5xl leading-none">Neusic</h1>
+          </div>
           <p className="text-ink/60 text-sm">
             Tell me where you are. I'll engineer the right mental state.
           </p>

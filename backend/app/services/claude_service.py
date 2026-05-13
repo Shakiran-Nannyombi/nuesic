@@ -2,9 +2,9 @@ import json
 import os
 from typing import Any
 
-from anthropic import Anthropic
+from groq import Groq
 
-MODEL = "claude-sonnet-4-6"
+MODEL = "llama-3.3-70b-versatile"
 
 SYSTEM_PROMPT = """You are the AI engine of Neusic, a mobile-first study companion built for African university students. Your job is to translate a student's mental state into a science-backed music session that uses auditory entrainment to help them focus, recover, or relieve anxiety.
 
@@ -58,32 +58,36 @@ Assume the student is studying on a phone, possibly on intermittent data, often 
 
 # Your three jobs
 
-You will be called for one of three tasks. Each task expects a strict JSON object as defined by the `output_config.format` schema attached to the request. Never include any prose outside the JSON.
+You will be called for one of three tasks. You MUST respond with ONLY a valid JSON object matching the schema described for each task. No prose, no markdown, no explanation — just the JSON.
 
 ## Task A: generate_session
 Input: stress_level (1-10), subject (string), duration_minutes (int), optional mood (string).
-Output: full session profile.
-- Choose `entrainment_target` based on stress + subject (see V-A mapping above).
-- Set `frequency_hz` to the band default (Beta 16, Alpha 10, Theta 6, Delta 2).
-- Set `carrier_hz` to 200 (frontend uses this as the left-ear oscillator base).
-- Choose `tempo_bpm_min`/`tempo_bpm_max` from the music heuristics.
-- Choose `genre` (single string) and 2-4 `mood_tags`.
-- Build `focus_blocks` following the duration rules above; alternating "focus" and "break".
-- Write a `youtube_query` of the form: `<band> waves <genre> <mood> study music binaural`.
-- Write an `opening_message` of 1-2 sentences. Warm, specific, addresses the stress level honestly.
+Output JSON fields:
+- entrainment_target: one of "beta", "alpha", "theta", "delta"
+- frequency_hz: number (band default: beta=16, alpha=10, theta=6, delta=2)
+- carrier_hz: number (always 200)
+- tempo_bpm_min: integer
+- tempo_bpm_max: integer
+- genre: string
+- mood_tags: array of 2-4 strings
+- focus_blocks: array of objects with {duration_minutes: integer, type: "focus"|"break"}
+- youtube_query: string of the form "<band> waves <genre> <mood> study music binaural"
+- opening_message: string (1-2 sentences, warm, specific)
 
 ## Task B: adapt_session
-Input: current_feedback (one of "focused", "losing_focus", "anxious"), minutes_elapsed, original_profile.
-Output: an adaptation.
-- "focused" -> action="continue", no other fields needed except a brief encouraging `message`.
-- "losing_focus" -> if more than half the focus block is elapsed, action="trigger_break"; otherwise action="adjust_frequency" and lower the band one step (Beta->Alpha, Alpha->Alpha but lower Hz by 2, Theta->stay).
-- "anxious" -> action="adjust_frequency", switch to Theta (frequency_hz=6) regardless of original; write a calming message.
-- Optionally include `new_youtube_query` if the band or genre changed.
+Input: current_feedback ("focused"|"losing_focus"|"anxious"), minutes_elapsed, original_profile.
+Output JSON fields:
+- action: one of "continue", "trigger_break", "adjust_frequency", "slower_tempo"
+- new_frequency_hz: number or null
+- new_youtube_query: string or null
+- message: string
 
 ## Task C: end_session
 Input: duration_studied (minutes), breaks_taken, feedback_history (list of strings).
-Output: focus_score (int 0-100), insight (one sentence about when they performed best), recommendation (one sentence for next time).
-- Score weighting: 50% based on focused/total feedback ratio, 30% on completing the planned duration, 20% on appropriate break usage.
+Output JSON fields:
+- focus_score: integer 0-100
+- insight: string (one sentence)
+- recommendation: string (one sentence)
 
 # Tone
 
@@ -91,105 +95,40 @@ Direct, warm, confident. No emojis. No "I hope this helps". No hedging. Address 
 """
 
 
-_client: Anthropic | None = None
+_client: Groq | None = None
 
 
-def get_client() -> Anthropic:
+def get_client() -> Groq:
     global _client
     if _client is None:
-        api_key = os.getenv("ANTHROPIC_API_KEY")
+        api_key = os.getenv("GROQ_API_KEY")
         if not api_key:
-            raise RuntimeError("ANTHROPIC_API_KEY is not set")
-        _client = Anthropic(api_key=api_key)
+            raise RuntimeError("GROQ_API_KEY is not set")
+        _client = Groq(api_key=api_key)
     return _client
 
 
-GENERATE_SESSION_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "entrainment_target": {"type": "string", "enum": ["beta", "alpha", "theta", "delta"]},
-        "frequency_hz": {"type": "number"},
-        "carrier_hz": {"type": "number"},
-        "tempo_bpm_min": {"type": "integer"},
-        "tempo_bpm_max": {"type": "integer"},
-        "genre": {"type": "string"},
-        "mood_tags": {"type": "array", "items": {"type": "string"}},
-        "focus_blocks": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "duration_minutes": {"type": "integer"},
-                    "type": {"type": "string", "enum": ["focus", "break"]},
-                },
-                "required": ["duration_minutes", "type"],
-                "additionalProperties": False,
-            },
-        },
-        "youtube_query": {"type": "string"},
-        "opening_message": {"type": "string"},
-    },
-    "required": [
-        "entrainment_target",
-        "frequency_hz",
-        "carrier_hz",
-        "tempo_bpm_min",
-        "tempo_bpm_max",
-        "genre",
-        "mood_tags",
-        "focus_blocks",
-        "youtube_query",
-        "opening_message",
-    ],
-    "additionalProperties": False,
-}
-
-ADAPT_SESSION_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "action": {
-            "type": "string",
-            "enum": ["continue", "trigger_break", "adjust_frequency", "slower_tempo"],
-        },
-        "new_frequency_hz": {"type": ["number", "null"]},
-        "new_youtube_query": {"type": ["string", "null"]},
-        "message": {"type": "string"},
-    },
-    "required": ["action", "message"],
-    "additionalProperties": False,
-}
-
-END_SESSION_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "focus_score": {"type": "integer"},
-        "insight": {"type": "string"},
-        "recommendation": {"type": "string"},
-    },
-    "required": ["focus_score", "insight", "recommendation"],
-    "additionalProperties": False,
-}
-
-
-def _call_claude(user_payload: dict[str, Any], schema: dict[str, Any]) -> dict[str, Any]:
-    response = get_client().messages.create(
+def _call_groq(user_payload: dict[str, Any]) -> dict[str, Any]:
+    response = get_client().chat.completions.create(
         model=MODEL,
-        max_tokens=1024,
-        system=[
-            {
-                "type": "text",
-                "text": SYSTEM_PROMPT,
-                "cache_control": {"type": "ephemeral"},
-            }
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": json.dumps(user_payload)},
         ],
-        output_config={"format": {"type": "json_schema", "schema": schema}},
-        messages=[{"role": "user", "content": json.dumps(user_payload)}],
+        response_format={"type": "json_object"},
+        max_tokens=1024,
+        temperature=0.4,
     )
-    text = next(b.text for b in response.content if b.type == "text")
+    text = response.choices[0].message.content
     return json.loads(text)
 
 
-def generate_session(stress_level: int, subject: str, duration_minutes: int, mood: str | None = None) -> dict[str, Any]:
+def generate_session(
+    stress_level: int,
+    subject: str,
+    duration_minutes: int,
+    mood: str | None = None,
+) -> dict[str, Any]:
     payload = {
         "task": "generate_session",
         "stress_level": stress_level,
@@ -197,24 +136,32 @@ def generate_session(stress_level: int, subject: str, duration_minutes: int, moo
         "duration_minutes": duration_minutes,
         "mood": mood,
     }
-    return _call_claude(payload, GENERATE_SESSION_SCHEMA)
+    return _call_groq(payload)
 
 
-def adapt_session(current_feedback: str, minutes_elapsed: int, original_profile: dict[str, Any]) -> dict[str, Any]:
+def adapt_session(
+    current_feedback: str,
+    minutes_elapsed: int,
+    original_profile: dict[str, Any],
+) -> dict[str, Any]:
     payload = {
         "task": "adapt_session",
         "current_feedback": current_feedback,
         "minutes_elapsed": minutes_elapsed,
         "original_profile": original_profile,
     }
-    return _call_claude(payload, ADAPT_SESSION_SCHEMA)
+    return _call_groq(payload)
 
 
-def end_session(duration_studied: int, breaks_taken: int, feedback_history: list[str]) -> dict[str, Any]:
+def end_session(
+    duration_studied: int,
+    breaks_taken: int,
+    feedback_history: list[str],
+) -> dict[str, Any]:
     payload = {
         "task": "end_session",
         "duration_studied": duration_studied,
         "breaks_taken": breaks_taken,
         "feedback_history": feedback_history,
     }
-    return _call_claude(payload, END_SESSION_SCHEMA)
+    return _call_groq(payload)
