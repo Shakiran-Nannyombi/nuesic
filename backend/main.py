@@ -3,12 +3,16 @@ from typing import Any
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
 
 load_dotenv()
 
 import claude_service
 import youtube_service
+from app.schemas.session import (
+    AdaptSessionRequest,
+    EndSessionRequest,
+    GenerateSessionRequest,
+)
 
 app = FastAPI(title="Neusic Backend", version="0.1.0")
 
@@ -19,25 +23,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-class GenerateSessionRequest(BaseModel):
-    stress_level: int = Field(ge=1, le=10)
-    subject: str
-    duration_minutes: int = Field(ge=15, le=180)
-    mood: str | None = None
-
-
-class AdaptSessionRequest(BaseModel):
-    current_feedback: str
-    minutes_elapsed: int = Field(ge=0)
-    original_profile: dict[str, Any]
-
-
-class EndSessionRequest(BaseModel):
-    duration_studied: int = Field(ge=0)
-    breaks_taken: int = Field(ge=0)
-    feedback_history: list[str]
 
 
 @app.get("/health")
