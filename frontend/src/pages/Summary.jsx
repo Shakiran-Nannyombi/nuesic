@@ -65,13 +65,13 @@ function ScoreRing({ score }) {
   return (
     <div className="relative inline-block">
       <svg viewBox="0 0 120 120" className="w-44 h-44 -rotate-90">
-        <circle cx="60" cy="60" r={radius} fill="none" stroke="rgba(14,14,16,0.08)" strokeWidth="6" />
+        <circle cx="60" cy="60" r={radius} fill="none" stroke="rgba(26,26,26,0.1)" strokeWidth="6" />
         <circle
           cx="60"
           cy="60"
           r={radius}
           fill="none"
-          stroke="#c46a3d"
+          stroke="#d9613a"
           strokeWidth="6"
           strokeLinecap="round"
           strokeDasharray={`${dash} ${circumference}`}

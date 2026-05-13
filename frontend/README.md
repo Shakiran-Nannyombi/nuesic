@@ -77,9 +77,9 @@ Tailwind config (`tailwind.config.js`) defines three colors derived from the Neu
 
 | Token    | Hex       | Use                                  |
 | -------- | --------- | ------------------------------------ |
-| `cream`  | `#f5f3ee` | Page background, button surfaces     |
-| `ink`    | `#0e0e10` | Body text, primary action buttons    |
-| `accent` | `#c46a3d` | Submit buttons, focus-score ring, current-block highlight |
+| `cream`  | `#f5efe6` | Page background, button surfaces     |
+| `ink`    | `#1a1a1a` | Body text, primary action buttons    |
+| `accent` | `#d9613a` | Submit buttons, focus-score ring, current-block highlight |
 
 Fonts:
 

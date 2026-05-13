@@ -4,9 +4,9 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: "#0e0e10",
-        cream: "#f5f3ee",
-        accent: "#c46a3d",
+        ink: "#1a1a1a",
+        cream: "#f5efe6",
+        accent: "#d9613a",
       },
       fontFamily: {
         display: ["Fraunces", "Georgia", "serif"],
