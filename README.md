@@ -6,7 +6,7 @@
 </div>
 
 <p align="center">
-  <img src="assets/5.png" alt="Neusic — AI-Powered Study Companion" />
+  <img src="assets/1.png" alt="Neusic — AI-Powered Study Companion" />
 </p>
 
 ---
