@@ -13,7 +13,7 @@ export default function FeedbackButtons({ onFeedback, disabled }) {
           type="button"
           disabled={disabled}
           onClick={() => onFeedback(o.value)}
-          className="py-3 px-2 rounded-lg border border-ink/20 text-sm hover:bg-ink/5 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="py-3 px-1 rounded-lg border border-ink/20 text-xs sm:text-sm hover:bg-ink/5 disabled:opacity-50 disabled:cursor-not-allowed leading-tight"
         >
           {o.label}
         </button>

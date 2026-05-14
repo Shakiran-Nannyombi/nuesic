@@ -29,19 +29,19 @@ export default function Onboarding({ onSessionGenerated }) {
   }
 
   return (
-    <div className="min-h-full flex flex-col items-center px-6 py-10">
+    <div className="min-h-full flex flex-col items-center px-4 py-6 sm:px-6 sm:py-10">
       <div className="w-full max-w-md">
-        <header className="mb-8">
-          <div className="flex items-center gap-4 mb-2">
-            <img src="/logo-nuesic.png" alt="Neusic logo" className="h-24 w-24 object-contain" />
-            <h1 className="font-display text-5xl leading-none">Neusic</h1>
+        <header className="mb-6 sm:mb-8">
+          <div className="flex items-center gap-3 mb-1">
+            <img src="/logo-nuesic.png" alt="Neusic logo" className="h-14 w-14 sm:h-20 sm:w-20 object-contain" />
+            <h1 className="font-display text-4xl sm:text-5xl leading-none">Neusic</h1>
           </div>
           <p className="text-ink/60 text-sm">
             Tell me where you are. I'll engineer the right mental state.
           </p>
         </header>
 
-        <div className="space-y-6">
+        <div className="space-y-5">
           <StressSlider value={stressLevel} onChange={setStressLevel} />
           <SubjectSelector value={subject} onChange={setSubject} />
           <DurationSelector value={durationMinutes} onChange={setDurationMinutes} />
@@ -50,7 +50,7 @@ export default function Onboarding({ onSessionGenerated }) {
         <button
           onClick={handleGenerate}
           disabled={loading}
-          className="mt-8 w-full py-4 rounded-lg bg-accent text-cream font-medium tracking-wide disabled:opacity-50"
+          className="mt-6 w-full py-4 rounded-lg bg-accent text-cream font-medium tracking-wide disabled:opacity-50 text-sm sm:text-base"
         >
           {loading ? "Building your focus profile..." : "Generate my session"}
         </button>

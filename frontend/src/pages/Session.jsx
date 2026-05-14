@@ -118,9 +118,9 @@ export default function Session({ profile: initialProfile, onEnd }) {
   }
 
   return (
-    <div className="min-h-full flex flex-col items-center px-6 py-10">
-      <div className="w-full max-w-md space-y-6">
-        <header className="text-center space-y-3">
+    <div className="min-h-full flex flex-col items-center px-4 py-4 sm:px-6 sm:py-10">
+      <div className="w-full max-w-md space-y-4 sm:space-y-6">
+        <header className="text-center space-y-2">
           <p className="text-xs uppercase tracking-wide text-ink/60">
             {profile.entrainment_target} · {profile.frequency_hz} Hz · {profile.genre}
           </p>
@@ -130,7 +130,7 @@ export default function Session({ profile: initialProfile, onEnd }) {
                 key={i}
                 title={`${b.duration_minutes}m ${b.type}`}
                 className={`h-1.5 rounded-full transition-all ${
-                  b.type === "focus" ? "w-10" : "w-4"
+                  b.type === "focus" ? "w-8 sm:w-10" : "w-3 sm:w-4"
                 } ${
                   i < blockIndex
                     ? "bg-ink/40"
@@ -175,17 +175,17 @@ export default function Session({ profile: initialProfile, onEnd }) {
           </div>
         )}
 
-        <div className="flex gap-2 pt-2">
+        <div className="flex gap-2 pt-1">
           <button
             onClick={() => setRunning((r) => !r)}
-            className="flex-1 py-3 rounded-lg border border-ink/20"
+            className="flex-1 py-3 rounded-lg border border-ink/20 text-sm"
           >
             {running ? "Pause" : "Resume"}
           </button>
           <button
             onClick={finishSession}
             disabled={ending}
-            className="flex-1 py-3 rounded-lg border border-ink/20 text-ink/70 disabled:opacity-50"
+            className="flex-1 py-3 rounded-lg border border-ink/20 text-ink/70 text-sm disabled:opacity-50"
           >
             End session
           </button>

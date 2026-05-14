@@ -7,8 +7,8 @@ export default function Summary({ summary, onRestart }) {
   );
 
   return (
-    <div className="min-h-full flex flex-col items-center px-6 py-10">
-      <div className="w-full max-w-md space-y-8">
+    <div className="min-h-full flex flex-col items-center px-4 py-6 sm:px-6 sm:py-10">
+      <div className="w-full max-w-md space-y-6">
         <header className="text-center">
           <p className="text-xs uppercase tracking-wide text-ink/60 mb-2">
             Session complete
@@ -47,7 +47,7 @@ export default function Summary({ summary, onRestart }) {
 
         <button
           onClick={onRestart}
-          className="w-full py-4 rounded-lg bg-accent text-cream font-medium tracking-wide"
+          className="w-full py-4 rounded-lg bg-accent text-cream font-medium tracking-wide text-sm sm:text-base"
         >
           Start a new session
         </button>
@@ -64,7 +64,7 @@ function ScoreRing({ score }) {
 
   return (
     <div className="relative inline-block">
-      <svg viewBox="0 0 120 120" className="w-44 h-44 -rotate-90">
+      <svg viewBox="0 0 120 120" className="w-36 h-36 sm:w-44 sm:h-44 -rotate-90">
         <circle cx="60" cy="60" r={radius} fill="none" stroke="rgba(26,26,26,0.1)" strokeWidth="6" />
         <circle
           cx="60"
@@ -78,7 +78,7 @@ function ScoreRing({ score }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-display text-6xl leading-none">{value}</span>
+        <span className="font-display text-5xl sm:text-6xl leading-none">{value}</span>
         <span className="text-xs uppercase tracking-wide text-ink/60 mt-1">
           focus score
         </span>
